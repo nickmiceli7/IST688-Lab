@@ -4,8 +4,10 @@ import tiktoken
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
+system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old"}
 
 st.title("MY Lab3 question answering chatbot")
+st.markdown(f"Token buffer: {token_based_buffer}")
 
 if 'client' not in st.session_state:
     api_key = st.secrets["OPENAI_API_KEY"]
@@ -40,11 +42,15 @@ if prompt := st.chat_input("What is up?"):
 
 
     buffer_messages.reverse()
+    passed_messages = []
+    passed_messages.append(system_prompt)
+    passed_messages.extend(buffer_messages)
+
 
     client = st.session_state.client
     stream = client.chat.completions.create(
         model='gpt-4o-mini',
-        messages=buffer_messages,
+        messages=passed_messages,
         stream=True)
 
     with st.chat_message('assistant'):
