@@ -1,5 +1,9 @@
 import streamlit as st
 from openai import OpenAI
+import tiktoken
+
+encoding = tiktoken.encoding_for_model("gpt-4o-mini")
+token_based_buffer = 500
 
 st.title("MY Lab3 question answering chatbot")
 
@@ -20,7 +24,23 @@ if prompt := st.chat_input("What is up?"):
     with st.chat_message('user'):
         st.markdown(prompt)
 
-    buffer_messages = st.session_state.messages[-4:]
+    #buffer_messages = st.session_state.messages[-4:]
+    #^ used for message count conversation buffer
+
+    buffer_messages = []
+    total_tokens = 0
+
+    for msg in reversed(st.session_state.messages):
+        token_count = len(encoding.encode(msg['content']))
+        if total_tokens + token_count < token_based_buffer:
+            buffer_messages.append(msg)
+            total_tokens = total_tokens + token_count
+        else:
+            break
+
+
+    buffer_messages.reverse()
+
     client = st.session_state.client
     stream = client.chat.completions.create(
         model='gpt-4o-mini',
