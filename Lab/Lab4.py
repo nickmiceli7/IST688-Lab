@@ -9,9 +9,6 @@ from pypdf import PdfReader
 __import__('pysqlite3')
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-chroma_client = chromadb.PersistentClient(path='./ChromaDB_for_Lab')
-collection = chroma_client.get_or_create_collection(name='Lab4Collection')
-
 if 'open_ai_client' not in st.session_state:
     api_key = st.secrets["OPENAI_API_KEY"]
     st.session_state.open_ai_client = OpenAI(api_key=api_key)
@@ -44,8 +41,14 @@ def load_pdfs_to_collection(folder_path, collection):
         text = extract_text_from_pdf(pdf_file)
         add_to_collection(collection, text, pdf_file.name)
 
-if collection.count() == 0:
-    load_pdfs_to_collection('./Lab-04-Data/', collection)
+if 'Lab4_VectorDB' not in st.session_state:
+    chroma_client = chromadb.PersistentClient(path='./ChromaDB_for_Lab')
+    collection = chroma_client.get_or_create_collection(name='Lab4Collection')
+    if collection.count() == 0:
+        load_pdfs_to_collection('./Lab-04-Data/', collection)
+    st.session_state.Lab4_VectorDB = collection
+
+collection = st.session_state.Lab4_VectorDB
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
@@ -78,7 +81,7 @@ if topic:
 
         st.write(f'**{i+1}. {doc_id}**')
 else:
-    st.info('Enter a topic in the sidebar to seach the collection')
+   st.info('Enter a topic in the sidebar to seach the collection')
 
 if 'messages' not in st.session_state:
     st.session_state.messages = [{'role': 'assistant', 'content': 'How can I help you?'}]
