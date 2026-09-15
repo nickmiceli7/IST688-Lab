@@ -1,17 +1,84 @@
 import streamlit as st
 from openai import OpenAI
 import tiktoken
+import sys
+import chromadb
+from pathlib import Path
+from pypdf import PdfReader
+
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+chroma_client = chromadb.PersistentClient(path='./ChromaDB_for_Lab')
+collection = chroma_client.get_or_create_collection(name='Lab4Collection')
+
+if 'open_ai_client' not in st.session_state:
+    api_key = st.secrets["OPENAI_API_KEY"]
+    st.session_state.open_ai_client = OpenAI(api_key=api_key)
+
+def add_to_collection(collection, text, file_name):
+    client = st.session_state.open_ai_client
+    response = client.embeddings.create(
+        input=text,
+        model='text-embedding-3-small'
+    )
+
+    embedding = response.data[0].embedding
+
+    collection.add(
+        documents=[text],
+        ids=[file_name],
+        embeddings=[embedding]
+    )
+
+def extract_text_from_pdf(pdf_path):
+    pdf_reader = PdfReader(pdf_path)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    return text
+
+def load_pdfs_to_collection(folder_path, collection):
+    pdf_folder = Path(folder_path)
+    for pdf_file in pdf_folder.glob("*.pdf"):
+        text = extract_text_from_pdf(pdf_file)
+        add_to_collection(collection, text, pdf_file.name)
+
+if collection.count() == 0:
+    load_pdfs_to_collection('./Lab-04-Data/', collection)
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
 system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old"}
 
-st.title("MY Lab3 question answering chatbot")
+st.title("Lab4: Chatbot using RAG")
 st.markdown(f"Token buffer: {token_based_buffer}")
 
-if 'client' not in st.session_state:
-    api_key = st.secrets["OPENAI_API_KEY"]
-    st.session_state.client = OpenAI(api_key=api_key)
+topic = st.sidebar.text_input('Topic', placeholder='Type your topic (e.g., GenAI)...')
+
+if topic:
+    client = st.session_state.open_ai_client
+    response = client.embeddings.create(
+        input=topic,
+        model='text-embedding-3-small'
+    )
+
+    query_embedding = response.data[0].embedding
+
+    results = collection.query(
+        query_embeddings = [query_embedding],
+        n_results = 3
+    )
+
+    st.subheader(f'Results for: {topic}')
+
+    for i in range(len(results['documents'][0])):
+        doc = results['documents'][0][i]
+        doc_id = results['ids'][0][i]
+
+        st.write(f'**{i+1}. {doc_id}**')
+else:
+    st.info('Enter a topic in the sidebar to seach the collection')
 
 if 'messages' not in st.session_state:
     st.session_state.messages = [{'role': 'assistant', 'content': 'How can I help you?'}]
@@ -47,7 +114,7 @@ if prompt := st.chat_input("What is up?"):
     passed_messages.extend(buffer_messages)
 
 
-    client = st.session_state.client
+    client = st.session_state.open_ai_client
     stream = client.chat.completions.create(
         model='gpt-4o-mini',
         messages=passed_messages,
