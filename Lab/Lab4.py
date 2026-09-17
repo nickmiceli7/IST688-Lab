@@ -42,7 +42,8 @@ def load_pdfs_to_collection(folder_path, collection):
         add_to_collection(collection, text, pdf_file.name)
 
 if 'Lab4_VectorDB' not in st.session_state:
-    chroma_client = chromadb.PersistentClient(path='./ChromaDB_for_Lab')
+    db_path = str(Path(__file__).parent / 'ChromaDB_for_Lab')
+    chroma_client = chromadb.PersistentClient(path=db_path)
     collection = chroma_client.get_or_create_collection(name='Lab4Collection')
     if collection.count() == 0:
         load_pdfs_to_collection('./Lab-04-Data/', collection)

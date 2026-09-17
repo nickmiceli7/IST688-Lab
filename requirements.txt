@@ -4,4 +4,4 @@ pypdf
 tiktoken
 pysqlite3-binary
 protobuf==3.20
-chromadb==0.5.23
+chromadb
