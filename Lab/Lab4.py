@@ -118,7 +118,7 @@ if prompt := st.chat_input("What is up?"):
         doc_id = results['ids'][0][i]
         relevant_doc += f"{doc_id}: {doc} \n"
 
-    dynamic_system_prompt = {'role': 'system', 'content': system_prompt['content'] + "\n The following text is your RAG context, make sure to cite it clearly if you use it: \n" + relevant_doc}
+    dynamic_system_prompt = {'role': 'system', 'content': system_prompt['content'] + "\n The following text is your RAG context, make sure to cite it clearly if you use it: At the end of every response, add a line formatted exactly as: Source(s): <filename1>, <filename2> listing only the documents you actually used. \n" + relevant_doc}
 
 
     #buffer_messages = st.session_state.messages[-4:]
