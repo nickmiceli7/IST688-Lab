@@ -54,8 +54,7 @@ collection = get_chroma_collection()
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
-system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old. At the end of EVERY answer, explicitly state which document(s) from the knowledge base you used, by name."}
-
+system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old. You MUST end every single response with a new line reading exactly: 'Source(s): ' followed by a comma-separated list of the exact document filenames you used from the provided context. If you did not use any retrieved documents to answer, write 'Source(s): none'."}
 st.title("Lab4: Chatbot using RAG")
 st.markdown(f"Token buffer: {token_based_buffer}")
 
