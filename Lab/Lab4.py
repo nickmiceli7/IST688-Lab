@@ -52,7 +52,7 @@ collection = st.session_state.Lab4_VectorDB
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
-system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old. If you use a relevant document, make sure to cite it clearly."}
+system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old. At the end of EVERY answer, explicitly state which document(s) from the knowledge base you used, by name.."}
 
 st.title("Lab4: Chatbot using RAG")
 st.markdown(f"Token buffer: {token_based_buffer}")
