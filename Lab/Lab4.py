@@ -52,36 +52,36 @@ collection = st.session_state.Lab4_VectorDB
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
-system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old"}
+system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old. If you use a relevant document, make sure to cite it clearly."}
 
 st.title("Lab4: Chatbot using RAG")
 st.markdown(f"Token buffer: {token_based_buffer}")
 
-topic = st.sidebar.text_input('Topic', placeholder='Type your topic (e.g., GenAI)...')
+#topic = st.sidebar.text_input('Topic', placeholder='Type your topic (e.g., GenAI)...')
 
-if topic:
-    client = st.session_state.open_ai_client
-    response = client.embeddings.create(
-        input=topic,
-        model='text-embedding-3-small'
-    )
+#if topic:
+    #client = st.session_state.open_ai_client
+    #response = client.embeddings.create(
+     #   input=topic,
+      #  model='text-embedding-3-small'
+    #)
 
-    query_embedding = response.data[0].embedding
+    #query_embedding = response.data[0].embedding
 
-    results = collection.query(
-        query_embeddings = [query_embedding],
-        n_results = 3
-    )
+    #results = collection.query(
+     #   query_embeddings = [query_embedding],
+      #  n_results = 3
+    #)
 
-    st.subheader(f'Results for: {topic}')
+    #st.subheader(f'Results for: {topic}')
 
-    for i in range(len(results['documents'][0])):
-        doc = results['documents'][0][i]
-        doc_id = results['ids'][0][i]
+    #for i in range(len(results['documents'][0])):
+     #   doc = results['documents'][0][i]
+      #  doc_id = results['ids'][0][i]
 
-        st.write(f'**{i+1}. {doc_id}**')
-else:
-   st.info('Enter a topic in the sidebar to seach the collection')
+       # st.write(f'**{i+1}. {doc_id}**')
+#else:
+ #   st.info('Enter a topic in the sidebar to seach the collection')
 
 if 'messages' not in st.session_state:
     st.session_state.messages = [{'role': 'assistant', 'content': 'How can I help you?'}]
@@ -91,10 +91,33 @@ for msg in st.session_state.messages:
         st.write(msg["content"])
 
 if prompt := st.chat_input("What is up?"):
+    with st.chat_message('user'):
+            st.markdown(prompt)
+
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message('user'):
-        st.markdown(prompt)
+    client = st.session_state.open_ai_client
+    response = client.embeddings.create(
+       input=prompt,
+       model='text-embedding-3-small'
+    )
+
+    query_embedding = response.data[0].embedding
+
+    results = collection.query(
+        query_embeddings = [query_embedding],
+        n_results = 3
+    )
+
+
+    relevant_doc = ''
+    for i in range(len(results['documents'][0])):
+        doc = results['documents'][0][i]
+        doc_id = results['ids'][0][i]
+        relevant_doc += f"{doc_id}: {doc} \n"
+
+    dynamic_system_prompt = {'role': 'system', 'content': system_prompt['content'] + relevant_doc}
+
 
     #buffer_messages = st.session_state.messages[-4:]
     #^ used for message count conversation buffer
@@ -113,11 +136,9 @@ if prompt := st.chat_input("What is up?"):
 
     buffer_messages.reverse()
     passed_messages = []
-    passed_messages.append(system_prompt)
+    passed_messages.append(dynamic_system_prompt)
     passed_messages.extend(buffer_messages)
 
-
-    client = st.session_state.open_ai_client
     stream = client.chat.completions.create(
         model='gpt-4o-mini',
         messages=passed_messages,
