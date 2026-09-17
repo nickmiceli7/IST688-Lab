@@ -41,15 +41,16 @@ def load_pdfs_to_collection(folder_path, collection):
         text = extract_text_from_pdf(pdf_file)
         add_to_collection(collection, text, pdf_file.name)
 
-if 'Lab4_VectorDB' not in st.session_state:
+@st.cache_resource #this debug was from claude and the following function
+def get_chroma_collection():
     db_path = str(Path(__file__).parent / 'ChromaDB_for_Lab')
     chroma_client = chromadb.PersistentClient(path=db_path)
     collection = chroma_client.get_or_create_collection(name='Lab4Collection')
     if collection.count() == 0:
         load_pdfs_to_collection('./Lab-04-Data/', collection)
-    st.session_state.Lab4_VectorDB = collection
+    return collection
 
-collection = st.session_state.Lab4_VectorDB
+collection = get_chroma_collection()
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
