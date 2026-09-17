@@ -52,7 +52,7 @@ collection = st.session_state.Lab4_VectorDB
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 token_based_buffer = 500
-system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old. At the end of EVERY answer, explicitly state which document(s) from the knowledge base you used, by name.."}
+system_prompt = {'role': 'system', 'content': "Input a user's question and answer it. Then ask if they want to know more information. IF YES, give more information and AGAIN ask if they want more information. IF NO, ask what else you can help with. ALL OUTPUTS should be understandable by a 10 year old. At the end of EVERY answer, explicitly state which document(s) from the knowledge base you used, by name."}
 
 st.title("Lab4: Chatbot using RAG")
 st.markdown(f"Token buffer: {token_based_buffer}")
@@ -116,7 +116,7 @@ if prompt := st.chat_input("What is up?"):
         doc_id = results['ids'][0][i]
         relevant_doc += f"{doc_id}: {doc} \n"
 
-    dynamic_system_prompt = {'role': 'system', 'content': system_prompt['content'] + relevant_doc}
+    dynamic_system_prompt = {'role': 'system', 'content': system_prompt['content'] + "\n The following text is your RAG context, make sure to cite it clearly if you use it: \n" + relevant_doc}
 
 
     #buffer_messages = st.session_state.messages[-4:]
