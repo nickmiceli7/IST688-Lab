@@ -58,31 +58,31 @@ system_prompt = {'role': 'system', 'content': "Input a user's question and answe
 st.title("Lab4: Chatbot using RAG")
 st.markdown(f"Token buffer: {token_based_buffer}")
 
-#topic = st.sidebar.text_input('Topic', placeholder='Type your topic (e.g., GenAI)...')
+topic = st.sidebar.text_input('Topic', placeholder='Type your topic (e.g., GenAI)...')
 
-#if topic:
-    #client = st.session_state.open_ai_client
-    #response = client.embeddings.create(
-     #   input=topic,
-      #  model='text-embedding-3-small'
-    #)
+if topic:
+    client = st.session_state.open_ai_client
+    response = client.embeddings.create(
+        input=topic,
+        model='text-embedding-3-small'
+    )
 
-    #query_embedding = response.data[0].embedding
+    query_embedding = response.data[0].embedding
 
-    #results = collection.query(
-     #   query_embeddings = [query_embedding],
-      #  n_results = 3
-    #)
+    results = collection.query(
+        query_embeddings = [query_embedding],
+        n_results = 3
+    )
 
-    #st.subheader(f'Results for: {topic}')
+    st.subheader(f'Results for: {topic}')
 
-    #for i in range(len(results['documents'][0])):
-     #   doc = results['documents'][0][i]
-      #  doc_id = results['ids'][0][i]
+    for i in range(len(results['documents'][0])):
+        doc = results['documents'][0][i]
+        doc_id = results['ids'][0][i]
 
-       # st.write(f'**{i+1}. {doc_id}**')
-#else:
- #   st.info('Enter a topic in the sidebar to seach the collection')
+        st.write(f'**{i+1}. {doc_id}**')
+else:
+    st.info('Enter a topic in the sidebar to seach the collection')
 
 if 'messages' not in st.session_state:
     st.session_state.messages = [{'role': 'assistant', 'content': 'How can I help you?'}]
