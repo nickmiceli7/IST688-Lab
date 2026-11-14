@@ -43,7 +43,7 @@ def prepare_image(upload):
 
 def transcribe_audio(upload):
     transcript = client.audio.transcriptions.create(
-        model="gpt-transcribe"
+        model="gpt-transcribe",
         file=(upload.name, upload.getvalue()))
     return transcript.text
 
