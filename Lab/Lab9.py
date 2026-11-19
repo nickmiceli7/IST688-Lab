@@ -57,7 +57,7 @@ def get_weather(location: str = "Syracuse, NY") -> dict:
     Returns temperature, feels-like, conditions, humidity, wind, UV index,
     today's min/max, and chance of rain by time of day. Accepts a city name,
     zip code, airport code (e.g. 'SYR'), or landmark. Defaults to Syracuse, NY."""
-    return get_current_weather(location)
+    return get_weather_data(location)
 
 
 
